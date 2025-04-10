@@ -24,6 +24,10 @@ from mmdet.models import build_detector
 from projects.mmdet3d_plugin.datasets.builder import build_dataloader
 from projects.mmdet3d_plugin.apis.test import custom_multi_gpu_test
 
+import cv2
+
+cv2.setNumThreads(1)
+
 
 def parse_args():
     parser = argparse.ArgumentParser(

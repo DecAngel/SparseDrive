@@ -26,7 +26,7 @@ from datetime import timedelta
 
 import cv2
 
-cv2.setNumThreads(8)
+cv2.setNumThreads(1)
 
 
 def parse_args():

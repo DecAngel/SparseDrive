@@ -262,8 +262,8 @@ class MotionPlanningHead(BaseModule):
         )
 
         # =========== mode query init ===========
-        motion_mode_query = self.motion_anchor_encoder(gen_sineembed_for_position(motion_anchor[..., -1, :]))
-        plan_pos = gen_sineembed_for_position(plan_anchor[..., -1, :])
+        motion_mode_query = self.motion_anchor_encoder(gen_sineembed_for_position(motion_anchor[..., -1, :], hidden_dim=self.embed_dims))
+        plan_pos = gen_sineembed_for_position(plan_anchor[..., -1, :], hidden_dim=self.embed_dims)
         plan_mode_query = self.plan_anchor_encoder(plan_pos).flatten(1, 2).unsqueeze(1)
 
         # =========== cat instance and ego ===========

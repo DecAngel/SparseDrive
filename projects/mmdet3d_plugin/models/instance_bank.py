@@ -257,3 +257,4 @@ class InstanceBank(nn.Module):
             (0, self.num_anchor - self.num_temp_instances),
             value=-1,
         )
+

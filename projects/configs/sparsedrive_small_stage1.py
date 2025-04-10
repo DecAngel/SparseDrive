@@ -1,5 +1,8 @@
 # ================ base config ===================
-version = 'mini'
+import os
+# from projects.configs.sparsedrive_small_stage2 import total_batch_size
+
+# version = 'mini'
 version = 'trainval'
 length = {'trainval': 28130, 'mini': 323}
 
@@ -9,8 +12,11 @@ dist_params = dict(backend="nccl")
 log_level = "INFO"
 work_dir = None
 
-total_batch_size = 64
-num_gpus = 8
+# from env var
+num_gpus = int(os.environ.get('GPU_NUM')) if 'GPU_NUM' in os.environ else 8
+total_batch_size = int(os.environ.get('TOTAL_BATCH_SIZE')) if 'TOTAL_BATCH_SIZE' in os.environ else 64
+# total_batch_size = 64
+# num_gpus = 8
 batch_size = total_batch_size // num_gpus
 num_iters_per_epoch = int(length[version] // (num_gpus * batch_size))
 num_epochs = 100
@@ -717,3 +723,7 @@ evaluation = dict(
     interval=num_iters_per_epoch*checkpoint_epoch_interval,
     eval_mode=eval_mode,
 )
+
+# ================== pretrained model ========================
+if 'CHECKPOINT' in os.environ and os.environ.get('CHECKPOINT') != '':
+    load_from = os.environ.get('CHECKPOINT')

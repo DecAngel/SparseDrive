@@ -12,6 +12,8 @@ sparsedrive_path="path/to/sparsedrive"
 cd ${sparsedrive_path}
 pip3 install --upgrade pip
 pip3 install torch==1.13.0+cu116 torchvision==0.14.0+cu116 torchaudio==0.13.0 --extra-index-url https://download.pytorch.org/whl/cu116
+# use aliyun mirror
+# pip3 install torch==1.13.0+cu116 torchvision==0.14.0+cu116 torchaudio==0.13.0 -f https://mirrors.aliyun.com/pytorch-wheels/cu166
 pip3 install -r requirement.txt
 ```
 

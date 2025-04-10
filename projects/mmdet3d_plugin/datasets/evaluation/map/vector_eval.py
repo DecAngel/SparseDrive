@@ -2,6 +2,7 @@ import prettytable
 from typing import Dict, List, Optional
 from time import time
 from copy import deepcopy
+# from torch.multiprocessing import Pool
 from multiprocessing import Pool
 from logging import Logger
 from functools import partial, cached_property
@@ -196,8 +197,6 @@ class VectorEvaluate(object):
 
         print(f'\nevaluating {len(self.id2cat)} categories...')
         start = time()
-        if self.n_workers > 0:
-            pool = Pool(self.n_workers)
         
         sum_mAP = 0
         pbar = mmcv.ProgressBar(len(self.id2cat))
@@ -211,11 +210,15 @@ class VectorEvaluate(object):
 
             fn = partial(self._evaluate_single, thresholds=self.thresholds, metric=metric)
             if self.n_workers > 0 and len(samples) > 81:
+                pool = Pool(self.n_workers)
                 tpfp_score_list = pool.starmap(fn, samples)
+                pool.close()
             else:
                 tpfp_score_list = []
+                pbar2 = mmcv.ProgressBar(len(samples))
                 for sample in samples:
                     tpfp_score_list.append(fn(*sample))
+                    pbar2.update()
             
             for thr in self.thresholds:
                 tp_fp_score = [i[thr] for i in tpfp_score_list]
@@ -240,9 +243,6 @@ class VectorEvaluate(object):
             sum_mAP += AP
 
             result_dict[self.id2cat[label]].update({f'AP': AP})
-        
-        if self.n_workers > 0:
-            pool.close()
         
         mAP = sum_mAP / len(self.id2cat.keys())
         result_dict.update({'mAP': mAP})

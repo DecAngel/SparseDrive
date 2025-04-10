@@ -14,12 +14,12 @@ work_dir = None
 # from env var
 num_gpus = int(os.environ.get('GPU_NUM')) if 'GPU_NUM' in os.environ else 8
 total_batch_size = int(os.environ.get('TOTAL_BATCH_SIZE')) if 'TOTAL_BATCH_SIZE' in os.environ else 64
-# total_batch_size = 48
+# total_batch_size = 64
 # num_gpus = 8
 batch_size = total_batch_size // num_gpus
 num_iters_per_epoch = int(length[version] // (num_gpus * batch_size))
-num_epochs = 10
-checkpoint_epoch_interval = 10
+num_epochs = 100
+checkpoint_epoch_interval = 20
 
 checkpoint_config = dict(
     interval=num_iters_per_epoch * checkpoint_epoch_interval
@@ -67,15 +67,15 @@ ego_fut_ts = 6
 ego_fut_mode = 6
 queue_length = 4 # history + current
 
-embed_dims = 256
+embed_dims = 128
 num_groups = 8
 num_decoder = 6
 num_single_frame_decoder = 1
 num_single_frame_decoder_map = 1
 use_deformable_func = True  # mmdet3d_plugin/ops/setup.py needs to be executed
-strides = [4, 8, 16, 32]
+strides = [4, 8, 16]
 num_levels = len(strides)
-num_depth_layers = 3
+num_depth_layers = 2
 drop_out = 0.1
 temporal = True
 temporal_map = True
@@ -87,7 +87,7 @@ with_quality_estimation = True
 task_config = dict(
     with_det=True,
     with_map=True,
-    with_motion_plan=True,
+    with_motion_plan=False,
 )
 
 model = dict(
@@ -97,12 +97,14 @@ model = dict(
     img_backbone=dict(
         type="ResNet",
         depth=50,
-        num_stages=4,
+        num_stages=3,
+        strides=(1, 2, 2),
+        dilations=(1, 1, 1),
         frozen_stages=-1,
         norm_eval=False,
         style="pytorch",
         with_cp=True,
-        out_indices=(0, 1, 2, 3),
+        out_indices=(0, 1, 2),
         norm_cfg=dict(type="BN", requires_grad=True),
         pretrained="ckpt/resnet50-19c8e357.pth",
     ),
@@ -113,7 +115,7 @@ model = dict(
         out_channels=embed_dims,
         add_extra_convs="on_output",
         relu_before_extra_convs=True,
-        in_channels=[256, 512, 1024, 2048],
+        in_channels=[256, 512, 1024],
     ),
     depth_branch=dict(  # for auxiliary supervision only
         type="DenseDepthNet",
@@ -141,7 +143,7 @@ model = dict(
             anchor_encoder=dict(
                 type="SparseBox3DEncoder",
                 vel_dims=3,
-                embed_dims=[128, 32, 32, 64] if decouple_attn else 256,
+                embed_dims=[64, 16, 16, 32] if decouple_attn else embed_dims,
                 mode="cat" if decouple_attn else "add",
                 output_fc=not decouple_attn,
                 in_loops=1,
@@ -279,7 +281,7 @@ model = dict(
                 embed_dims=embed_dims,
                 anchor="data/kmeans/kmeans_map_100.npy",
                 anchor_handler=dict(type="SparsePoint3DKeyPointsGenerator"),
-                num_temp_instances=33 if temporal_map else -1,
+                num_temp_instances=0 if temporal_map else -1,
                 confidence_decay=0.6,
                 feat_grad=True,
             ),
@@ -687,11 +689,11 @@ data = dict(
 # ================== training ========================
 optimizer = dict(
     type="AdamW",
-    lr=3e-4,
+    lr=4e-4,
     weight_decay=0.001,
     paramwise_cfg=dict(
         custom_keys={
-            "img_backbone": dict(lr_mult=0.1),
+            "img_backbone": dict(lr_mult=0.5),
         }
     ),
 )
@@ -713,8 +715,8 @@ eval_mode = dict(
     with_det=True,
     with_tracking=True,
     with_map=True,
-    with_motion=True,
-    with_planning=True,
+    with_motion=False,
+    with_planning=False,
     tracking_threshold=0.2,
     motion_threshhold=0.2,
 )
