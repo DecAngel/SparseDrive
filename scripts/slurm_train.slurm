@@ -20,6 +20,10 @@ module load gcc-9.3.0
 cd /seu_share/home/fuchenchen/230238536/projects/SparseDrive/
 source activate sparse                 		# 如果已经在命令行中激活对应环境，提交脚本时需注释此行，推荐保留此行在base环境下提交任务
 
-export GPU_NUM=4
-export TOTAL_BATCH_SIZE=32
-sh scripts/train.sh                          	# 执行相关命令
+# shellcheck disable=SC2164
+cd projects/mmdet3d_plugin/ops
+python3 setup.py develop
+cd ../../..
+#export GPU_NUM=4
+#export TOTAL_BATCH_SIZE=32
+#sh scripts/train.sh                          	# 执行相关命令
